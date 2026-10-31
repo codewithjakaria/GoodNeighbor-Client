@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 import EventsList from "./EventsList";
 import { Badge } from "@/components/ui/badge";
 
@@ -49,9 +50,14 @@ export default async function EventsPage() {
               Small ways to make a difference, right in your neighbourhood.
             </p>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {events.length} events listed
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {events.length} events listed
+            </span>
+            <Link className="inline-flex h-9 items-center justify-center rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white no-underline hover:bg-emerald-800" href="/create-event">
+              Create event
+            </Link>
+          </div>
         </header>
 
         {events.length === 0 ? (
