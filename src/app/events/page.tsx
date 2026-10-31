@@ -54,6 +54,9 @@ export default async function EventsPage() {
             <span className="text-xs text-muted-foreground">
               {events.length} events listed
             </span>
+            <Link className="inline-flex h-9 items-center justify-center rounded-full border border-emerald-800/20 px-4 text-xs font-semibold text-emerald-900 no-underline hover:bg-white/70 dark:text-emerald-100" href="/my-events">
+              My events
+            </Link>
             <Link className="inline-flex h-9 items-center justify-center rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white no-underline hover:bg-emerald-800" href="/create-event">
               Create event
             </Link>
