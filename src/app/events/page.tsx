@@ -1,4 +1,6 @@
 import Navbar from "@/components/Navbar";
+import EventsList from "./EventsList";
+import { Badge } from "@/components/ui/badge";
 
 type CommunityEvent = {
   _id: string;
@@ -31,52 +33,36 @@ export default async function EventsPage() {
   const events = await getEvents();
 
   return (
-    <>
+    <div className="min-h-screen bg-[#eaf2e8] text-emerald-950 dark:bg-[#202f27] dark:text-emerald-50">
       <Navbar />
-      <main className="events-page">
-        <section className="events-heading">
-          <span className="events-kicker">GOOD THINGS HAPPEN TOGETHER</span>
-          <h1>Upcoming community events</h1>
-          <p>Find a local event and join your neighbours in making a difference.</p>
-        </section>
+      <main className="min-h-[calc(100vh-86px)] px-4 py-7 sm:px-6 sm:py-9">
+        <div className="mx-auto w-full max-w-[1160px]">
+        <header className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
+          <div>
+            <Badge className="mb-2 rounded-full bg-emerald-50 text-[9px] font-semibold tracking-wide text-emerald-800 hover:bg-emerald-50">
+              GOODNEIGHBOR · LOCAL ACTION
+            </Badge>
+            <h1 className="text-2xl font-semibold tracking-tight text-emerald-950 dark:text-emerald-50 sm:text-3xl">
+              Upcoming Events
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+              Small ways to make a difference, right in your neighbourhood.
+            </p>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {events.length} events listed
+          </span>
+        </header>
 
         {events.length === 0 ? (
-          <p className="events-message">
+          <p className="py-10 text-center text-sm text-muted-foreground">
             No upcoming events right now. Please check again soon.
           </p>
         ) : (
-          <section className="events-grid" aria-label="Upcoming events">
-            {events.map((event) => {
-              const eventDate = new Date(`${event.date.slice(0, 10)}T00:00:00`);
-              const imageUrl =
-                event.image && !event.image.includes("example.com")
-                  ? event.image
-                  : "https://res.cloudinary.com/hy4kyit2a/f_auto%2Cfl_lossy%2Cq_70/learn/modules/trees-to-combat-climate-change/discover-how-salesforce-is-taking-action-with-nature-based-solutions/images/6c2ccbdd638de6fe7c9a9798e0a76bc1_kix.2lj1n3td520.png";
-
-              return (
-                <article className="event-card" key={event._id}>
-                  <img className="event-card-image" src={imageUrl} alt={event.title} />
-                  <div className="event-card-content">
-                    <span className="event-card-type">{event.type}</span>
-                    <h2>{event.title}</h2>
-                    <p>{event.description}</p>
-                    <div className="event-card-info">
-                      <span>
-                        {eventDate.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </span>
-                      <span>{event.location}</span>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </section>
+          <EventsList events={events} />
         )}
+        </div>
       </main>
-    </>
+    </div>
   );
 }
