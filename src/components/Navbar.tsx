@@ -76,7 +76,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="w-full border-b border-emerald-950/10 bg-[#eaf2e8] text-[var(--nav-ink)] dark:border-emerald-100/10 dark:bg-[#202f27]">
+    <header className="w-full border-b border-emerald-950/10 bg-[var(--nav-background)] text-[var(--nav-ink)] dark:border-emerald-100/10">
       <div className="mx-auto flex min-h-[86px] w-[calc(100%-32px)] max-w-[1160px] flex-wrap items-center justify-between gap-x-5 gap-y-3 py-3 sm:w-[calc(100%-48px)]">
         <Link
           className="flex shrink-0 items-center gap-2.5 text-lg font-extrabold tracking-[-0.05em] text-[var(--nav-ink)] no-underline sm:text-xl"
