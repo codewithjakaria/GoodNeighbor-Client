@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarCheck, CalendarPlus, ChevronDown, LogOut, Settings } from "lucide-react";
+import { CalendarCheck, CalendarPlus, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 
 type AuthUser = {
   name: string;
@@ -147,6 +147,14 @@ export default function Navbar() {
                     <p className="truncate font-semibold text-emerald-950 dark:text-emerald-50">{user.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                   </div>
+                  <Link
+                    className="flex items-center gap-2.5 px-4 py-3 text-emerald-950 no-underline hover:bg-emerald-50 dark:text-emerald-50 dark:hover:bg-emerald-950/50"
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <UserRound className="size-4 text-emerald-700 dark:text-emerald-300" />
+                    My Profile
+                  </Link>
                   <Link
                     className="flex items-center gap-2.5 px-4 py-3 text-emerald-950 no-underline hover:bg-emerald-50 dark:text-emerald-50 dark:hover:bg-emerald-950/50"
                     href="/create-event"
