@@ -170,6 +170,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -191,13 +192,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage('');
     setIsLoading(true);
+
+    if (!email.trim() || !password) {
+      toast.error('Please enter your email and password.');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch(`${API_URL}/api/auth/sign-in/email`, {
@@ -216,24 +221,22 @@ export default function LoginPage() {
         await response.json();
 
       if (!response.ok) {
-        setMessage(
-          result.message || result.error?.message || 'Could not log in.',
+        toast.error(
+          result.message || result.error?.message || 'Invalid email or password.',
         );
         return;
       }
 
+      toast.success('Welcome back! Logged in successfully.');
       router.push('/events');
     } catch {
-      setMessage(
-        'Could not connect to the server. Please check that it is running.',
-      );
+      toast.error('Could not connect to the server. Please try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleGoogleLogin() {
-    setMessage('');
     setIsLoading(true);
 
     try {
@@ -252,16 +255,14 @@ export default function LoginPage() {
       const result: { url?: string; message?: string } = await response.json();
 
       if (!response.ok || !result.url) {
-        setMessage(result.message || 'Could not start Google login.');
+        toast.error(result.message || 'Could not start Google login.');
         setIsLoading(false);
         return;
       }
 
       window.location.href = result.url;
     } catch {
-      setMessage(
-        'Could not connect to the server. Please check that it is running.',
-      );
+      toast.error('Could not connect to the server. Please try again.');
       setIsLoading(false);
     }
   }
@@ -290,7 +291,7 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent className="px-7 pb-7 sm:px-9 sm:pb-9">
-            <form className="flex flex-col gap-4" onSubmit={handleLogin}>
+            <form className="flex flex-col gap-4" noValidate onSubmit={handleLogin}>
               <div className="flex flex-col gap-1.5">
                 <label
                   className="text-xs font-semibold text-foreground"
@@ -348,15 +349,6 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-
-              {message && (
-                <p
-                  aria-live="polite"
-                  className="rounded-lg bg-red-50 px-3 py-2 text-xs leading-5 text-red-800 dark:bg-red-950 dark:text-red-100"
-                >
-                  {message}
-                </p>
-              )}
 
               <Button
                 className="mt-1 h-10 w-full rounded-lg bg-emerald-700 text-xs font-semibold text-white hover:bg-emerald-800"

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { CalendarDays, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +20,14 @@ type CommunityEvent = {
 };
 
 export default function JoinedEventsPage() {
+  const router = useRouter();
   const [events, setEvents] = useState<CommunityEvent[]>([]);
-  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
+  function handleAuthError() {
+    toast.error("Please log in to continue.", { id: "auth-required" });
+    router.replace("/login");
+  }
 
   useEffect(() => {
     async function loadJoinedEvents() {
@@ -32,7 +39,8 @@ export default function JoinedEventsPage() {
         const email = session.user?.email;
 
         if (!sessionResponse.ok || !email) {
-          throw new Error("Please log in to see the events you joined.");
+          handleAuthError();
+          return;
         }
 
         const tokenResponse = await fetch("http://localhost:5000/api/auth/token", {
@@ -41,7 +49,8 @@ export default function JoinedEventsPage() {
         const tokenResult = await tokenResponse.json();
 
         if (!tokenResponse.ok || !tokenResult.token) {
-          throw new Error("Please log in to see the events you joined.");
+          handleAuthError();
+          return;
         }
 
         const response = await fetch(
@@ -51,18 +60,20 @@ export default function JoinedEventsPage() {
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.message || "Could not load joined events.");
+          toast.error(result.message || "Could not load joined events.");
+          return;
         }
 
         setEvents(result.data || []);
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Could not load joined events.");
+      } catch {
+        toast.error("Could not connect to the server. Please try again.");
       } finally {
         setIsLoading(false);
       }
     }
 
     loadJoinedEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -77,15 +88,6 @@ export default function JoinedEventsPage() {
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Joined Events</h1>
             <p className="mt-1 text-sm text-muted-foreground">Events you have chosen to take part in.</p>
           </header>
-
-          {message && (
-            <p className="mb-4 rounded-lg border border-emerald-900/10 bg-white px-4 py-3 text-sm dark:bg-[#18251e]">
-              {message}
-              {message.toLowerCase().includes("log in") && (
-                <Link className="ml-1 font-semibold text-emerald-700 underline dark:text-emerald-300" href="/login">Log in</Link>
-              )}
-            </p>
-          )}
 
           {isLoading ? (
             <p className="py-12 text-center text-sm text-muted-foreground">Loading joined events...</p>

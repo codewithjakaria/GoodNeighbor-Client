@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { ArrowLeft, CalendarDays, Check, HeartHandshake, MapPin, Share2, UserRound, UsersRound } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
@@ -24,11 +25,11 @@ type CommunityEvent = {
 export default function EventDetailsPage() {
   const params = useParams<{ id: string }>();
   const eventId = params.id;
+  const router = useRouter();
   const [event, setEvent] = useState<CommunityEvent | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [joinedByThisUser, setJoinedByThisUser] = useState(false);
   const [message, setMessage] = useState("");
-  const [shareMessage, setShareMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -59,7 +60,11 @@ export default function EventDetailsPage() {
   }, [eventId]);
 
   async function handleJoin() {
-    setMessage("");
+    if (alreadyJoined) {
+      toast.error("You have already joined this event.");
+      return;
+    }
+
     setIsJoining(true);
 
     try {
@@ -69,7 +74,8 @@ export default function EventDetailsPage() {
       const tokenResult = await tokenResponse.json();
 
       if (!tokenResponse.ok || !tokenResult.token) {
-        setMessage("Please log in to join this event.");
+        toast.error("Please log in to join this event.");
+        router.push("/login");
         return;
       }
 
@@ -80,15 +86,15 @@ export default function EventDetailsPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        setMessage(result.message || "Could not join this event.");
+        toast.error(result.message || "Could not join this event.");
         return;
       }
 
       setEvent(result.data);
       setJoinedByThisUser(true);
-      setMessage("You joined the event successfully.");
+      toast.success("You have joined this event.");
     } catch {
-      setMessage("Could not connect to the server. Please try again.");
+      toast.error("Could not connect to the server. Please try again.");
     } finally {
       setIsJoining(false);
     }
@@ -100,10 +106,10 @@ export default function EventDetailsPage() {
         await navigator.share({ title: event?.title, url: window.location.href });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        setShareMessage("Event link copied.");
+        toast.success("Event link copied.");
       }
     } catch {
-      setShareMessage("Copy the event link from your browser address bar.");
+      toast("Copy the event link from your browser address bar.");
     }
   }
 
@@ -197,15 +203,6 @@ export default function EventDetailsPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {(message || shareMessage) && (
-                <p aria-live="polite" className="rounded-xl border border-emerald-900/10 bg-white px-4 py-3 text-sm text-emerald-900 dark:bg-[#18251e] dark:text-emerald-100">
-                  {message || shareMessage}
-                  {message.toLowerCase().includes("log in") && (
-                    <Link className="ml-1 font-semibold underline" href="/login">Log in</Link>
-                  )}
-                </p>
-              )}
 
               <div className="grid gap-5 lg:grid-cols-[1.6fr_0.8fr]">
                 <Card className="rounded-2xl border-emerald-950/10 bg-white shadow-sm dark:bg-[#18251e]">

@@ -14,6 +14,9 @@
   --banner-soft: #eaf2e8;
   --banner-card: #ffffff;
   --banner-glow: #dcead8;
+  --toast-bg: #ffffff;
+  --toast-fg: #17382d;
+  --toast-border: #e1e8df;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -76,6 +79,9 @@
   --banner-soft: #202f27;
   --banner-card: #18251e;
   --banner-glow: #294334;
+  --toast-bg: #18251e;
+  --toast-fg: #f0f5ee;
+  --toast-border: #34453a;
 }
 
 @theme inline {

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import {
   ArrowRight,
   Check,
@@ -30,34 +32,38 @@ const API_URL = 'http://localhost:5000';
 const SITE_URL = 'http://localhost:3000';
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState('');
-  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const hasUppercase = /[A-Z]/.test(password);
   const hasLowercase = /[a-z]/.test(password);
   const hasMinimumLength = password.length >= 8;
-  const canSubmit = hasUppercase && hasLowercase && hasMinimumLength;
-
-  function showError(text: string) {
-    setIsError(true);
-    setMessage(text);
-  }
-
-  function showSuccess(text: string) {
-    setIsError(false);
-    setMessage(text);
-  }
 
   async function handleSignUp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage('');
-    setIsError(false);
+
+    if (name.trim().length < 2) {
+      toast.error('Please enter your full name.');
+      return;
+    }
+    if (!hasUppercase) {
+      toast.error('Password must have at least one uppercase letter.');
+      return;
+    }
+    if (!hasLowercase) {
+      toast.error('Password must have at least one lowercase letter.');
+      return;
+    }
+    if (!hasMinimumLength) {
+      toast.error('Password must be at least 8 characters long.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -79,33 +85,34 @@ export default function RegisterPage() {
         await response.json();
 
       if (!response.ok) {
-        showError(
-          result.message ||
-            result.error?.message ||
-            'Could not create account.',
+        toast.error(
+          result.message || result.error?.message || 'Could not create account.',
         );
         return;
       }
 
-      showSuccess(
-        'Account created successfully. You can return to the home page.',
+      toast.success('Account created successfully. Welcome to GoodNeighbor!');
+
+      // BetterAuth signs the user in after sign-up; if there is no
+      // session yet, send them to the login page instead.
+      const sessionResponse = await fetch(`${API_URL}/api/auth/get-session`, {
+        credentials: 'include',
+      });
+      const sessionResult: { user?: unknown } = await sessionResponse
+        .json()
+        .catch(() => ({}));
+
+      router.push(
+        sessionResponse.ok && sessionResult.user ? '/events' : '/login',
       );
-      setName('');
-      setEmail('');
-      setPhotoUrl('');
-      setPassword('');
     } catch {
-      showError(
-        'Could not connect to the server. Please check that it is running.',
-      );
+      toast.error('Could not connect to the server. Please try again.');
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleGoogleSignUp() {
-    setMessage('');
-    setIsError(false);
     setIsLoading(true);
 
     try {
@@ -124,16 +131,14 @@ export default function RegisterPage() {
       const result: { url?: string; message?: string } = await response.json();
 
       if (!response.ok || !result.url) {
-        showError(result.message || 'Could not start Google sign up.');
+        toast.error(result.message || 'Could not start Google sign up.');
         setIsLoading(false);
         return;
       }
 
       window.location.href = result.url;
     } catch {
-      showError(
-        'Could not connect to the server. Please check that it is running.',
-      );
+      toast.error('Could not connect to the server. Please try again.');
       setIsLoading(false);
     }
   }
@@ -162,7 +167,7 @@ export default function RegisterPage() {
           </CardHeader>
 
           <CardContent className="px-7 pb-7 sm:px-9 sm:pb-9">
-            <form className="flex flex-col gap-4" onSubmit={handleSignUp}>
+            <form className="flex flex-col gap-4" noValidate onSubmit={handleSignUp}>
               <div className="flex flex-col gap-1.5">
                 <label
                   className="text-xs font-semibold text-foreground"
@@ -313,22 +318,9 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {message && (
-                <p
-                  aria-live="polite"
-                  className={
-                    isError
-                      ? 'rounded-lg bg-red-50 px-3 py-2 text-xs leading-5 text-red-800 dark:bg-red-950 dark:text-red-100'
-                      : 'rounded-lg bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100'
-                  }
-                >
-                  {message}
-                </p>
-              )}
-
               <Button
                 className="mt-1 h-10 w-full rounded-lg bg-emerald-700 text-xs font-semibold text-white hover:bg-emerald-800"
-                disabled={isLoading || !canSubmit}
+                disabled={isLoading}
                 type="submit"
               >
                 {isLoading ? 'Creating account...' : 'Register'}

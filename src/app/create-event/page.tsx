@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { ArrowLeft, CalendarDays, Image as ImageIcon, MapPin, Sparkles, Tag } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -53,12 +54,10 @@ export default function CreateEventPage() {
   const [image, setImage] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
-  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleCreateEvent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("");
     setIsLoading(true);
 
     try {
@@ -69,7 +68,7 @@ export default function CreateEventPage() {
       const tokenResult: { token?: string; message?: string } = await tokenResponse.json();
 
       if (!tokenResponse.ok || !tokenResult.token) {
-        setMessage(tokenResult.message || "Please log in before creating an event.");
+        toast.error(tokenResult.message || "Please log in before creating an event.");
         return;
       }
 
@@ -84,14 +83,15 @@ export default function CreateEventPage() {
       const result: { message?: string; data?: { _id?: string } } = await response.json();
 
       if (!response.ok) {
-        setMessage(result.message || "Could not create the event.");
+        toast.error(result.message || "Could not create the event.");
         return;
       }
 
+      toast.success("Event created successfully.");
       router.push("/events");
       router.refresh();
     } catch {
-      setMessage("Could not connect to the server. Please check that it is running.");
+      toast.error("Could not connect to the server. Please check that it is running.");
     } finally {
       setIsLoading(false);
     }
@@ -239,15 +239,6 @@ export default function CreateEventPage() {
                     <Tag className="size-3.5" /> Added securely when you create the event
                   </span>
                 </div>
-
-                {message && (
-                  <p aria-live="polite" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-950 dark:text-red-100">
-                    {message}
-                    {message.toLowerCase().includes("log in") && (
-                      <Link className="ml-1 font-semibold underline" href="/login">Log in</Link>
-                    )}
-                  </p>
-                )}
 
                 <Button
                   className="h-11 rounded-lg bg-emerald-700 text-sm font-semibold text-white hover:bg-emerald-800"

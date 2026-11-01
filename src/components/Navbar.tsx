@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { CalendarCheck, CalendarPlus, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
 
 type AuthUser = {
@@ -66,6 +67,7 @@ export default function Navbar() {
         method: "POST",
         credentials: "include",
       });
+      toast.success("Logged out successfully.");
     } finally {
       setUser(null);
       setMenuOpen(false);

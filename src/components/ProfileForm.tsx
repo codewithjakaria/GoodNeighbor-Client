@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
-import { CheckCircle2, CircleAlert, Image as ImageIcon } from "lucide-react";
+import toast from "react-hot-toast";
+import { Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,8 +21,6 @@ export type ProfileUser = {
   image?: string | null;
   createdAt?: string;
 };
-
-type ToastState = { type: "success" | "error"; message: string } | null;
 
 function isHttpUrl(value: string) {
   if (!/^https?:\/\//i.test(value)) return false;
@@ -45,7 +44,6 @@ export default function ProfileForm({ user, onUpdated }: ProfileFormProps) {
   const [imageError, setImageError] = useState("");
   const [previewFailed, setPreviewFailed] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [toast, setToast] = useState<ToastState>(null);
 
   // Re-sync the fields when the refreshed session comes back (React's
   // documented "adjusting state when a prop changes" pattern).
@@ -56,12 +54,6 @@ export default function ProfileForm({ user, onUpdated }: ProfileFormProps) {
     setImage(user.image ?? "");
     setPreviewFailed(false);
   }
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 4500);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
 
   const isDirty = name !== (user.name ?? "") || image !== (user.image ?? "");
   const previewValue = image.trim();
@@ -100,47 +92,19 @@ export default function ProfileForm({ user, onUpdated }: ProfileFormProps) {
         );
       }
 
-      setToast({ type: "success", message: "Profile updated successfully." });
+      toast.success("Profile updated successfully.");
       await onUpdated();
     } catch (error) {
-      setToast({
-        type: "error",
-        message:
-          error instanceof Error ? error.message : "Could not update your profile.",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "Could not update your profile.",
+      );
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <>
-      {toast && (
-        <div
-          aria-live="polite"
-          className={`fixed right-4 top-20 z-50 flex max-w-sm items-start gap-2 rounded-xl border px-4 py-3 text-sm shadow-xl ${
-            toast.type === "success"
-              ? "border-emerald-900/10 bg-white text-emerald-900 dark:border-emerald-100/10 dark:bg-[#18251e] dark:text-emerald-50"
-              : "border-red-900/10 bg-red-50 text-red-800 dark:border-red-100/10 dark:bg-red-950 dark:text-red-100"
-          }`}
-          role="status"
-        >
-          {toast.type === "success" ? (
-            <CheckCircle2
-              className="mt-0.5 size-4 shrink-0 text-emerald-700 dark:text-emerald-300"
-              aria-hidden="true"
-            />
-          ) : (
-            <CircleAlert
-              className="mt-0.5 size-4 shrink-0 text-red-800 dark:text-red-100"
-              aria-hidden="true"
-            />
-          )}
-          <span>{toast.message}</span>
-        </div>
-      )}
-
-      <Card className="rounded-2xl border-emerald-950/10 bg-white shadow-sm dark:border-emerald-100/10 dark:bg-[#18251e]">
+    <Card className="rounded-2xl border-emerald-950/10 bg-white shadow-sm dark:border-emerald-100/10 dark:bg-[#18251e]">
         <CardHeader className="px-6 pb-1 pt-6">
           <CardTitle className="text-lg font-semibold sm:text-xl">
             Update profile
@@ -244,6 +208,5 @@ export default function ProfileForm({ user, onUpdated }: ProfileFormProps) {
           </form>
         </CardContent>
       </Card>
-    </>
   );
 }

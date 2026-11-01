@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { CalendarDays, MapPin, Pencil, Trash2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type CommunityEvent = {
   _id: string;
@@ -50,11 +58,17 @@ async function getToken() {
 }
 
 export default function MyEventsPage() {
+  const router = useRouter();
   const [events, setEvents] = useState<CommunityEvent[]>([]);
   const [editingEvent, setEditingEvent] = useState<CommunityEvent | null>(null);
-  const [message, setMessage] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<CommunityEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [busyId, setBusyId] = useState("");
+
+  function handleAuthError() {
+    toast.error("Please log in to continue.", { id: "auth-required" });
+    router.replace("/login");
+  }
 
   useEffect(() => {
     async function loadMyEvents() {
@@ -71,13 +85,22 @@ export default function MyEventsPage() {
 
         setEvents(Array.isArray(result.data) ? result.data : []);
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Could not load your events.");
+        const errorMessage =
+          error instanceof Error ? error.message : "Could not load your events.";
+
+        if (errorMessage.toLowerCase().includes("log in")) {
+          handleAuthError();
+          return;
+        }
+
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
     }
 
     loadMyEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleUpdate(event: FormEvent<HTMLFormElement>) {
@@ -95,7 +118,6 @@ export default function MyEventsPage() {
     };
 
     setBusyId(editingEvent._id);
-    setMessage("");
 
     try {
       const token = await getToken();
@@ -115,19 +137,25 @@ export default function MyEventsPage() {
 
       setEvents(events.map((item) => item._id === editingEvent._id ? result.data as CommunityEvent : item));
       setEditingEvent(null);
-      setMessage("Event updated successfully.");
+      toast.success("Event updated.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not update this event.");
+      const errorMessage =
+        error instanceof Error ? error.message : "Could not update this event.";
+
+      if (errorMessage.toLowerCase().includes("log in")) {
+        handleAuthError();
+        return;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setBusyId("");
     }
   }
 
   async function handleDelete(eventId: string) {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-
     setBusyId(eventId);
-    setMessage("");
+    const loadingToastId = toast.loading("Deleting event...");
 
     try {
       const token = await getToken();
@@ -143,11 +171,21 @@ export default function MyEventsPage() {
 
       setEvents(events.filter((event) => event._id !== eventId));
       if (editingEvent?._id === eventId) setEditingEvent(null);
-      setMessage("Event deleted successfully.");
+      toast.success("Event deleted.", { id: loadingToastId });
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Could not delete this event.");
+      const errorMessage =
+        error instanceof Error ? error.message : "Could not delete this event.";
+
+      if (errorMessage.toLowerCase().includes("log in")) {
+        toast.dismiss(loadingToastId);
+        handleAuthError();
+        return;
+      }
+
+      toast.error(errorMessage, { id: loadingToastId });
     } finally {
       setBusyId("");
+      setDeleteTarget(null);
     }
   }
 
@@ -168,15 +206,6 @@ export default function MyEventsPage() {
               Create event
             </Link>
           </header>
-
-          {message && (
-            <p aria-live="polite" className="mb-4 rounded-lg border border-emerald-900/10 bg-white px-4 py-3 text-sm dark:bg-[#18251e]">
-              {message}
-              {message.toLowerCase().includes("log in") && (
-                <Link className="ml-1 font-semibold text-emerald-700 underline dark:text-emerald-300" href="/login">Log in</Link>
-              )}
-            </p>
-          )}
 
           {isLoading ? (
             <p className="py-12 text-center text-sm text-muted-foreground">Loading your events...</p>
@@ -228,7 +257,7 @@ export default function MyEventsPage() {
                         <Button className="h-9 flex-1 text-xs" onClick={() => setEditingEvent(event)} type="button" variant="outline">
                           <Pencil className="size-3.5" /> Edit
                         </Button>
-                        <Button className="h-9 text-xs" disabled={busyId === event._id} onClick={() => handleDelete(event._id)} type="button" variant="outline">
+                        <Button className="h-9 text-xs" disabled={busyId === event._id} onClick={() => setDeleteTarget(event)} type="button" variant="outline">
                           <Trash2 className="size-3.5" /> Delete
                         </Button>
                       </div>
@@ -240,6 +269,43 @@ export default function MyEventsPage() {
           )}
         </div>
       </main>
+
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        open={Boolean(deleteTarget)}
+      >
+        <DialogContent>
+          <DialogTitle className="text-lg font-semibold">
+            Delete this event?
+          </DialogTitle>
+          <DialogDescription className="mt-2 text-sm text-muted-foreground">
+            This will permanently remove &ldquo;{deleteTarget?.title}&rdquo;. This
+            action cannot be undone.
+          </DialogDescription>
+          <div className="mt-6 flex justify-end gap-2">
+            <Button
+              className="h-9 rounded-lg text-xs"
+              onClick={() => setDeleteTarget(null)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-9 rounded-lg bg-rose-600 text-xs font-semibold text-white hover:bg-rose-700"
+              disabled={busyId === deleteTarget?._id}
+              onClick={() => {
+                if (deleteTarget) handleDelete(deleteTarget._id);
+              }}
+              type="button"
+            >
+              {busyId === deleteTarget?._id ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

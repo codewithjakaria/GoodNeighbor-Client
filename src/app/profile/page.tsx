@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { CalendarCheck, CalendarPlus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ProfileForm, { type ProfileUser } from "@/components/ProfileForm";
@@ -69,6 +70,7 @@ export default function ProfilePage() {
       if (!sessionUser) {
         // Only redirect once the session request has resolved — never
         // while it is still loading.
+        toast.error("Please log in to continue.", { id: "auth-required" });
         router.replace("/login");
         return;
       }
