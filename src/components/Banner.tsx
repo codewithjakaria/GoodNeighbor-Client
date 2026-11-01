@@ -105,7 +105,7 @@ export default async function Banner() {
               <span>
                 <span aria-hidden="true">⌖</span> {event.location}
               </span>
-              <Link href={`/events/${event._id || "latest"}`}>
+              <Link href={event._id && event._id !== "winter-clothes" ? `/events/${event._id}` : "/events"}>
                 Event details <span aria-hidden="true">→</span>
               </Link>
             </div>

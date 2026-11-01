@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight, CalendarDays, MapPin, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,9 +139,9 @@ export default function EventsList({ events }: EventsListProps) {
                     {event.description}
                   </p>
                   <CardFooter className="mt-4 justify-end border-t border-border p-0 pt-3">
-                    <Button className="h-8 px-3 text-xs" disabled size="sm" variant="outline">
+                    <Link className="inline-flex h-8 items-center gap-1.5 rounded-md border border-emerald-800/20 px-3 text-xs font-medium text-emerald-900 no-underline hover:bg-emerald-50 dark:text-emerald-100 dark:hover:bg-emerald-950/50" href={`/events/${event._id}`}>
                       Details <ArrowRight className="size-3.5" />
-                    </Button>
+                    </Link>
                   </CardFooter>
                 </CardContent>
               </Card>
