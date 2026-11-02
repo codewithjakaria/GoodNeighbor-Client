@@ -22,9 +22,13 @@ export default function PrivateRoute({ children }: { children: ReactNode }) {
 
     async function loadSession() {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/get-session", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_API_URL ||
+            'http://localhost:5000/api/auth/get-session',
+          {
+            credentials: 'include',
+          },
+        );
         const result: { user?: unknown } = await response.json().catch(() => ({}));
 
         if (!isActive) return;

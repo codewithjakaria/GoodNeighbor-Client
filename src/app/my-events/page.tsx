@@ -46,9 +46,12 @@ function getTomorrowDate() {
 }
 
 async function getToken() {
-  const response = await fetch("http://localhost:5000/api/auth/token", {
-    credentials: "include",
-  });
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/auth/token',
+    {
+      credentials: 'include',
+    },
+  );
   const result: ApiResult = await response.json();
 
   if (!response.ok || !result.token) {
@@ -77,9 +80,13 @@ export default function MyEventsPage() {
     async function loadMyEvents() {
       try {
         const token = await getToken();
-        const response = await fetch("http://localhost:5000/api/my-events", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_API_URL ||
+            'http://localhost:5000/api/my-events',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         const result: ApiResult = await response.json();
 
         if (!response.ok) {
@@ -124,14 +131,18 @@ export default function MyEventsPage() {
 
     try {
       const token = await getToken();
-      const response = await fetch(`http://localhost:5000/api/events/${editingEvent._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL ||
+          `http://localhost:5000/api/events/${editingEvent._id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatedFields),
         },
-        body: JSON.stringify(updatedFields),
-      });
+      );
       const result: ApiResult = await response.json();
 
       if (!response.ok || !result.data || Array.isArray(result.data)) {
@@ -162,10 +173,14 @@ export default function MyEventsPage() {
 
     try {
       const token = await getToken();
-      const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_API_URL ||
+          `process.env.NEXT_PUBLIC_API_URL || http://localhost:5000/api/events/${eventId}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       const result: ApiResult = await response.json();
 
       if (!response.ok) {

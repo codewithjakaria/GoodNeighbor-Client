@@ -15,9 +15,13 @@ const fallbackImage =
 
 async function getRecentEvents(): Promise<CommunityEvent[]> {
   try {
-    const response = await fetch("http://localhost:5000/api/events?limit=6∆", {
-      cache: "no-store",
-    });
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_API_URL ||
+        'http://localhost:5000/api/events?limit=6∆',
+      {
+        cache: 'no-store',
+      },
+    );
     const result: { data: CommunityEvent[] } = await response.json();
 
     if (response.ok && Array.isArray(result.data)) {

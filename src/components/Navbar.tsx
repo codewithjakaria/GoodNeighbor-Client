@@ -30,9 +30,13 @@ export default function Navbar() {
 
     async function loadUser() {
       try {
-        const response = await fetch("http://localhost:5000/api/auth/get-session", {
-          credentials: "include",
-        });
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_API_URL ||
+            'http://localhost:5000/api/auth/get-session',
+          {
+            credentials: 'include',
+          },
+        );
         const result = await response.json();
 
         if (response.ok && result.user) {
@@ -63,10 +67,14 @@ export default function Navbar() {
     setIsSigningOut(true);
 
     try {
-      await fetch("http://localhost:5000/api/auth/sign-out", {
-        method: "POST",
-        credentials: "include",
-      });
+      await fetch(
+        process.env.NEXT_PUBLIC_API_URL ||
+          'http://localhost:5000/api/auth/sign-out',
+        {
+          method: 'POST',
+          credentials: 'include',
+        },
+      );
       toast.success("Logged out successfully.");
     } finally {
       setUser(null);

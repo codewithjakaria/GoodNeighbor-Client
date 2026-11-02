@@ -1,14 +1,23 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { ArrowLeft, CalendarDays, Check, HeartHandshake, MapPin, Share2, UserRound, UsersRound } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  HeartHandshake,
+  MapPin,
+  Share2,
+  UserRound,
+  UsersRound,
+} from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 type CommunityEvent = {
   _id: string;
@@ -27,9 +36,9 @@ export default function EventDetailsPage() {
   const eventId = params.id;
   const router = useRouter();
   const [event, setEvent] = useState<CommunityEvent | null>(null);
-  const [userEmail, setUserEmail] = useState("");
+  const [userEmail, setUserEmail] = useState('');
   const [joinedByThisUser, setJoinedByThisUser] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -38,19 +47,23 @@ export default function EventDetailsPage() {
       try {
         const [eventResponse, sessionResponse] = await Promise.all([
           fetch(`http://localhost:5000/api/events/${eventId}`),
-          fetch("http://localhost:5000/api/auth/get-session", { credentials: "include" }),
+          fetch('http://localhost:5000/api/auth/get-session', {
+            credentials: 'include',
+          }),
         ]);
         const eventResult = await eventResponse.json();
         const sessionResult = await sessionResponse.json();
 
         if (!eventResponse.ok) {
-          throw new Error(eventResult.message || "Could not find this event.");
+          throw new Error(eventResult.message || 'Could not find this event.');
         }
 
         setEvent(eventResult.data);
-        setUserEmail(sessionResult.user?.email?.toLowerCase() || "");
+        setUserEmail(sessionResult.user?.email?.toLowerCase() || '');
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Could not load this event.");
+        setMessage(
+          error instanceof Error ? error.message : 'Could not load this event.',
+        );
       } finally {
         setIsLoading(false);
       }
@@ -61,40 +74,46 @@ export default function EventDetailsPage() {
 
   async function handleJoin() {
     if (alreadyJoined) {
-      toast.error("You have already joined this event.");
+      toast.error('You have already joined this event.');
       return;
     }
 
     setIsJoining(true);
 
     try {
-      const tokenResponse = await fetch("http://localhost:5000/api/auth/token", {
-        credentials: "include",
-      });
+      const tokenResponse = await fetch(
+        'http://localhost:5000/api/auth/token',
+        {
+          credentials: 'include',
+        },
+      );
       const tokenResult = await tokenResponse.json();
 
       if (!tokenResponse.ok || !tokenResult.token) {
-        toast.error("Please log in to join this event.");
-        router.push("/login");
+        toast.error('Please log in to join this event.');
+        router.push('/login');
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/events/${eventId}/join`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${tokenResult.token}` },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/events/${eventId}/join`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tokenResult.token}` },
+        },
+      );
       const result = await response.json();
 
       if (!response.ok) {
-        toast.error(result.message || "Could not join this event.");
+        toast.error(result.message || 'Could not join this event.');
         return;
       }
 
       setEvent(result.data);
       setJoinedByThisUser(true);
-      toast.success("You have joined this event.");
+      toast.success('You have joined this event.');
     } catch {
-      toast.error("Could not connect to the server. Please try again.");
+      toast.error('Could not connect to the server. Please try again.');
     } finally {
       setIsJoining(false);
     }
@@ -103,35 +122,47 @@ export default function EventDetailsPage() {
   async function handleShare() {
     try {
       if (navigator.share) {
-        await navigator.share({ title: event?.title, url: window.location.href });
+        await navigator.share({
+          title: event?.title,
+          url: window.location.href,
+        });
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        toast.success("Event link copied.");
+        toast.success('Event link copied.');
       }
     } catch {
-      toast("Copy the event link from your browser address bar.");
+      toast('Copy the event link from your browser address bar.');
     }
   }
 
-  const alreadyJoined = joinedByThisUser || Boolean(
-    userEmail && event?.joinedEmails?.some((email) => email.toLowerCase() === userEmail),
-  );
+  const alreadyJoined =
+    joinedByThisUser ||
+    Boolean(
+      userEmail &&
+      event?.joinedEmails?.some(email => email.toLowerCase() === userEmail),
+    );
   const readableDate = event
-    ? new Date(`${event.date.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        timeZone: "UTC",
-      })
-    : "";
+    ? new Date(`${event.date.slice(0, 10)}T00:00:00Z`).toLocaleDateString(
+        'en-US',
+        {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+          timeZone: 'UTC',
+        },
+      )
+    : '';
 
   return (
     <div className="min-h-screen bg-[#eaf2e8] text-emerald-950 dark:bg-[#202f27] dark:text-emerald-50">
       <Navbar />
       <main className="px-4 py-7 sm:px-6 sm:py-10">
         <div className="mx-auto w-full max-w-[1120px]">
-          <Link className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-emerald-800 no-underline hover:text-emerald-950 dark:text-emerald-200" href="/events">
+          <Link
+            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-emerald-800 no-underline hover:text-emerald-950 dark:text-emerald-200"
+            href="/events"
+          >
             <ArrowLeft className="size-4" /> Back to Upcoming Events
           </Link>
 
@@ -146,12 +177,16 @@ export default function EventDetailsPage() {
             </Card>
           ) : event ? (
             <div className="space-y-5">
-              <section className="relative isolate min-h-[330px] overflow-hidden rounded-[28px] bg-emerald-950 sm:min-h-[410px]" aria-labelledby="event-title">
+              <section
+                className="relative isolate min-h-[330px] overflow-hidden rounded-[28px] bg-emerald-950 sm:min-h-[410px]"
+                aria-labelledby="event-title"
+              >
                 <img
                   alt={event.title}
                   className="absolute inset-0 h-full w-full object-cover"
-                  onError={(image) => {
-                    image.currentTarget.src = "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1400&q=80";
+                  onError={image => {
+                    image.currentTarget.src =
+                      'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1400&q=80';
                   }}
                   src={event.image}
                 />
@@ -165,13 +200,24 @@ export default function EventDetailsPage() {
                   </span>
                 </div>
                 <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-9">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">A little time can make a difference</p>
-                  <h1 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl" id="event-title">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100">
+                    A little time can make a difference
+                  </p>
+                  <h1
+                    className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl"
+                    id="event-title"
+                  >
                     {event.title}
                   </h1>
                   <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/90 sm:text-sm">
-                    <span className="inline-flex items-center gap-2"><MapPin className="size-4 text-emerald-200" />{event.location}</span>
-                    <span className="inline-flex items-center gap-2"><CalendarDays className="size-4 text-emerald-200" />{readableDate}</span>
+                    <span className="inline-flex items-center gap-2">
+                      <MapPin className="size-4 text-emerald-200" />
+                      {event.location}
+                    </span>
+                    <span className="inline-flex items-center gap-2">
+                      <CalendarDays className="size-4 text-emerald-200" />
+                      {readableDate}
+                    </span>
                   </div>
                 </div>
               </section>
@@ -183,21 +229,39 @@ export default function EventDetailsPage() {
                       <UsersRound className="size-5" />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold">{event.joinedEmails?.length || 0} neighbours joined</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">Be part of this community effort.</p>
+                      <p className="text-sm font-semibold">
+                        {event.joinedEmails?.length || 0} neighbours joined
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Be part of this community effort.
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-                    <Button className="h-10 rounded-lg" onClick={handleShare} type="button" variant="outline">
+                    <Button
+                      className="h-10 rounded-lg"
+                      onClick={handleShare}
+                      type="button"
+                      variant="outline"
+                    >
                       <Share2 className="size-4" /> Share
                     </Button>
                     {alreadyJoined ? (
-                      <Button className="h-10 rounded-lg bg-emerald-100 px-5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-100" disabled>
+                      <Button
+                        className="h-10 rounded-lg bg-emerald-100 px-5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-100"
+                        disabled
+                      >
                         <Check className="size-4" /> You joined
                       </Button>
                     ) : (
-                      <Button className="h-10 rounded-lg bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800" disabled={isJoining} onClick={handleJoin} type="button">
-                        <HeartHandshake className="size-4" /> {isJoining ? "Joining..." : "Join Event"}
+                      <Button
+                        className="h-10 rounded-lg bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800"
+                        disabled={isJoining}
+                        onClick={handleJoin}
+                        type="button"
+                      >
+                        <HeartHandshake className="size-4" />{' '}
+                        {isJoining ? 'Joining...' : 'Join Event'}
                       </Button>
                     )}
                   </div>
@@ -207,9 +271,15 @@ export default function EventDetailsPage() {
               <div className="grid gap-5 lg:grid-cols-[1.6fr_0.8fr]">
                 <Card className="rounded-2xl border-emerald-950/10 bg-white shadow-sm dark:bg-[#18251e]">
                   <CardContent className="p-5 sm:p-7">
-                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-300">The plan</p>
-                    <h2 className="mt-2 text-xl font-semibold tracking-tight">About this event</h2>
-                    <p className="mt-4 whitespace-pre-line text-sm leading-7 text-muted-foreground">{event.description}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-300">
+                      The plan
+                    </p>
+                    <h2 className="mt-2 text-xl font-semibold tracking-tight">
+                      About this event
+                    </h2>
+                    <p className="mt-4 whitespace-pre-line text-sm leading-7 text-muted-foreground">
+                      {event.description}
+                    </p>
                     <div className="mt-6 grid gap-3 border-t border-emerald-950/10 pt-5 text-sm dark:border-emerald-100/10 sm:grid-cols-2">
                       <div>
                         <p className="text-xs text-muted-foreground">When</p>
@@ -225,14 +295,21 @@ export default function EventDetailsPage() {
 
                 <Card className="rounded-2xl border-emerald-950/10 bg-[#f5f8f3] shadow-sm dark:bg-[#18251e]">
                   <CardContent className="p-5 sm:p-6">
-                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-300">The person behind it</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700 dark:text-emerald-300">
+                      The person behind it
+                    </p>
                     <div className="mt-4 flex size-12 items-center justify-center rounded-full bg-emerald-700 text-white">
                       <UserRound className="size-5" />
                     </div>
-                    <h2 className="mt-3 text-lg font-semibold">Event organizer</h2>
-                    <p className="mt-1 break-all text-sm text-muted-foreground">{event.creatorEmail}</p>
+                    <h2 className="mt-3 text-lg font-semibold">
+                      Event organizer
+                    </h2>
+                    <p className="mt-1 break-all text-sm text-muted-foreground">
+                      {event.creatorEmail}
+                    </p>
                     <p className="mt-4 border-t border-emerald-950/10 pt-4 text-xs leading-5 text-muted-foreground dark:border-emerald-100/10">
-                      This community member created the event and will welcome volunteers at the location.
+                      This community member created the event and will welcome
+                      volunteers at the location.
                     </p>
                   </CardContent>
                 </Card>
@@ -241,8 +318,15 @@ export default function EventDetailsPage() {
           ) : (
             <Card className="rounded-2xl border-emerald-950/10 bg-white p-8 text-center dark:bg-[#18251e]">
               <h1 className="text-xl font-semibold">Event not found</h1>
-              <p className="mt-2 text-sm text-muted-foreground">{message || "This event may have been removed."}</p>
-              <Link className="mt-5 inline-flex h-9 items-center rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white no-underline hover:bg-emerald-800" href="/events">Browse upcoming events</Link>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {message || 'This event may have been removed.'}
+              </p>
+              <Link
+                className="mt-5 inline-flex h-9 items-center rounded-full bg-emerald-700 px-4 text-xs font-semibold text-white no-underline hover:bg-emerald-800"
+                href="/events"
+              >
+                Browse upcoming events
+              </Link>
             </Card>
           )}
         </div>

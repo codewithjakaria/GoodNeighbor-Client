@@ -29,7 +29,7 @@ import {
 import { Input } from '@/components/ui/input';
 
 // Deploy করার সময় শুধু এই দুটো বদলালেই হবে
-const API_URL = 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const SITE_URL = 'http://localhost:3000';
 
 export default function RegisterPage() {

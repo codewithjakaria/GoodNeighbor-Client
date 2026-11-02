@@ -23,9 +23,13 @@ const exampleEvent: CommunityEvent = {
 
 async function getEvent() {
   try {
-    const response = await fetch("http://localhost:5000/api/events?limit=1", {
-      cache: "no-store",
-    });
+    const response = await fetch(
+      process.env.NEXT_PUBLIC_API_URL ||
+        'http://localhost:5000/api/events?limit=1',
+      {
+        cache: 'no-store',
+      },
+    );
 
     const result: { data: CommunityEvent[] } = await response.json();
 
