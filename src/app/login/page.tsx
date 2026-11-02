@@ -171,6 +171,7 @@ import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { getSafeRedirect } from '@/lib/redirect';
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -228,7 +229,7 @@ export default function LoginPage() {
       }
 
       toast.success('Welcome back! Logged in successfully.');
-      router.push('/events');
+      router.push(getSafeRedirect());
     } catch {
       toast.error('Could not connect to the server. Please try again.');
     } finally {
@@ -248,7 +249,7 @@ export default function LoginPage() {
         credentials: 'include',
         body: JSON.stringify({
           provider: 'google',
-          callbackURL: `${SITE_URL}/events`,
+          callbackURL: `${SITE_URL}${getSafeRedirect()}`,
         }),
       });
 

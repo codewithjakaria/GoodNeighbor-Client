@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { getSafeRedirect, readRedirectParam } from '@/lib/redirect';
 import {
   ArrowRight,
   Check,
@@ -94,7 +95,8 @@ export default function RegisterPage() {
       toast.success('Account created successfully. Welcome to GoodNeighbor!');
 
       // BetterAuth signs the user in after sign-up; if there is no
-      // session yet, send them to the login page instead.
+      // session yet, send them to the login page instead — keeping the
+      // original destination so it is honoured after logging in.
       const sessionResponse = await fetch(`${API_URL}/api/auth/get-session`, {
         credentials: 'include',
       });
@@ -102,8 +104,14 @@ export default function RegisterPage() {
         .json()
         .catch(() => ({}));
 
+      const redirect = readRedirectParam();
+
       router.push(
-        sessionResponse.ok && sessionResult.user ? '/events' : '/login',
+        sessionResponse.ok && sessionResult.user
+          ? getSafeRedirect()
+          : redirect
+            ? `/login?redirect=${encodeURIComponent(redirect)}`
+            : '/login',
       );
     } catch {
       toast.error('Could not connect to the server. Please try again.');
@@ -124,7 +132,7 @@ export default function RegisterPage() {
         credentials: 'include',
         body: JSON.stringify({
           provider: 'google',
-          callbackURL: `${SITE_URL}/events`,
+          callbackURL: `${SITE_URL}${getSafeRedirect()}`,
         }),
       });
 
