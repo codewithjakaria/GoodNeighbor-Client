@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { API_URL } from "@/lib/config";
 
 type SessionStatus = "loading" | "authed" | "guest";
 
@@ -23,8 +24,7 @@ export default function PrivateRoute({ children }: { children: ReactNode }) {
     async function loadSession() {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL ||
-            'http://localhost:5000/api/auth/get-session',
+          `${API_URL}/api/auth/get-session`,
           {
             credentials: 'include',
           },

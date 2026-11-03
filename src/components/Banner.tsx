@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { API_URL } from "@/lib/config";
 
 type CommunityEvent = {
   _id?: string;
@@ -22,23 +23,28 @@ const exampleEvent: CommunityEvent = {
 };
 
 async function getEvent() {
+  const url = `${API_URL}/api/events?limit=1`;
+
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL ||
-        'http://localhost:5000/api/events?limit=1',
-      {
-        cache: 'no-store',
-      },
-    );
+    const response = await fetch(url, {
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error(`[Banner] GET ${url} failed with status ${response.status}`);
+      return exampleEvent;
+    }
 
     const result: { data: CommunityEvent[] } = await response.json();
 
-    if (response.ok && result.data.length > 0) {
+    if (Array.isArray(result.data) && result.data.length > 0) {
       return result.data[0];
     }
-  } catch {
-    // Show the sample event when the server is not running.
-    return exampleEvent;
+
+    console.error(`[Banner] GET ${url} returned no events`);
+  } catch (error) {
+    console.error(`[Banner] GET ${url} failed:`, error);
+    // Show the sample event when the server is not reachable.
   }
 
   return exampleEvent;

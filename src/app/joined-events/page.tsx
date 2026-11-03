@@ -9,6 +9,7 @@ import Navbar from '@/components/Navbar';
 import PrivateRoute from '@/components/PrivateRoute';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { API_URL } from '@/lib/config';
 
 type CommunityEvent = {
   _id: string;
@@ -36,7 +37,7 @@ export default function JoinedEventsPage() {
     async function loadJoinedEvents() {
       try {
         const sessionResponse = await fetch(
-          process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/auth/get-session',
+          `${API_URL}/api/auth/get-session`,
           {
             credentials: 'include',
           },
@@ -50,8 +51,7 @@ export default function JoinedEventsPage() {
         }
 
         const tokenResponse = await fetch(
-          process.env.NEXT_PUBLIC_API_URL ||
-            'http://localhost:5000/api/auth/token',
+          `${API_URL}/api/auth/token`,
           {
             credentials: 'include',
           },
@@ -64,8 +64,7 @@ export default function JoinedEventsPage() {
         }
 
         const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL ||
-            `http://localhost:5000/api/users/${encodeURIComponent(email)}/events`,
+          `${API_URL}/api/users/${encodeURIComponent(email)}/events`,
           { headers: { Authorization: `Bearer ${tokenResult.token}` } },
         );
         const result = await response.json();

@@ -18,6 +18,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { API_URL } from "@/lib/config";
 
 type CommunityEvent = {
   _id: string;
@@ -47,7 +48,7 @@ function getTomorrowDate() {
 
 async function getToken() {
   const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/auth/token',
+    `${API_URL}/api/auth/token`,
     {
       credentials: 'include',
     },
@@ -81,8 +82,7 @@ export default function MyEventsPage() {
       try {
         const token = await getToken();
         const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL ||
-            'http://localhost:5000/api/my-events',
+          `${API_URL}/api/my-events`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },
@@ -132,8 +132,7 @@ export default function MyEventsPage() {
     try {
       const token = await getToken();
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL ||
-          `http://localhost:5000/api/events/${editingEvent._id}`,
+        `${API_URL}/api/events/${editingEvent._id}`,
         {
           method: 'PUT',
           headers: {
@@ -174,8 +173,7 @@ export default function MyEventsPage() {
     try {
       const token = await getToken();
       const response = await fetch(
-        process.env.NEXT_PUBLIC_API_URL ||
-          `process.env.NEXT_PUBLIC_API_URL || http://localhost:5000/api/events/${eventId}`,
+        `${API_URL}/api/events/${eventId}`,
         {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },

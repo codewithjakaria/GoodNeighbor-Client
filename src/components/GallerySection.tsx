@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
+import { API_URL } from "@/lib/config";
 
 type CommunityEvent = {
   _id: string;
@@ -11,9 +12,6 @@ type CommunityEvent = {
   location: string;
   date: string;
 };
-
-// Same base URL the Recent Events section uses.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const MAX_GALLERY_ITEMS = 8;
 
@@ -31,13 +29,22 @@ function eventTimestamp(event: CommunityEvent) {
 }
 
 async function getGalleryEvents(): Promise<CommunityEvent[]> {
+  const url = `${API_URL}/api/events?all=1`;
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/events?all=1`, {
+    const response = await fetch(url, {
       cache: "no-store",
     });
+
+    if (!response.ok) {
+      console.error(`[Gallery] GET ${url} failed with status ${response.status}`);
+      return [];
+    }
+
     const result: { data?: CommunityEvent[] } = await response.json();
 
-    if (!response.ok || !Array.isArray(result.data)) {
+    if (!Array.isArray(result.data)) {
+      console.error(`[Gallery] GET ${url} returned an unexpected payload`);
       return [];
     }
 
@@ -53,8 +60,9 @@ async function getGalleryEvents(): Promise<CommunityEvent[]> {
       })
       .sort((first, second) => eventTimestamp(second) - eventTimestamp(first))
       .slice(0, MAX_GALLERY_ITEMS);
-  } catch {
-    // Show the empty state when the server is not running.
+  } catch (error) {
+    console.error(`[Gallery] GET ${url} failed:`, error);
+    // Show the empty state when the server is not reachable.
     return [];
   }
 }

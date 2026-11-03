@@ -2,6 +2,11 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import EventsList from "./EventsList";
 import { Badge } from "@/components/ui/badge";
+import { API_URL } from "@/lib/config";
+
+// Rendered on every request so the event list is never frozen at
+// build time.
+export const dynamic = "force-dynamic";
 
 type CommunityEvent = {
   _id: string;
@@ -14,20 +19,34 @@ type CommunityEvent = {
 };
 
 async function getEvents() {
+  const url = `${API_URL}/api/events`;
+
   try {
-    const response = await fetch("http://localhost:5000/api/events", {
+    const response = await fetch(url, {
       cache: "no-store",
     });
+
+    if (!response.ok) {
+      console.error(
+        `[UpcomingEvents] GET ${url} failed with status ${response.status}`,
+      );
+      return [];
+    }
+
     const result: { data: CommunityEvent[] } = await response.json();
 
-    if (response.ok) {
-      return result.data;
+    if (!Array.isArray(result.data)) {
+      console.error(
+        `[UpcomingEvents] GET ${url} returned an unexpected payload`,
+      );
+      return [];
     }
-  } catch {
+
+    return result.data;
+  } catch (error) {
+    console.error(`[UpcomingEvents] GET ${url} failed:`, error);
     return [];
   }
-
-  return [];
 }
 
 export default async function EventsPage() {

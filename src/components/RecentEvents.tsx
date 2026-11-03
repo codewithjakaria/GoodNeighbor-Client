@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { API_URL } from "@/lib/config";
 
 type CommunityEvent = {
   _id: string;
@@ -14,25 +15,33 @@ const fallbackImage =
   "https://res.cloudinary.com/hy4kyit2a/f_auto%2Cfl_lossy%2Cq_70/learn/modules/trees-to-combat-climate-change/discover-how-salesforce-is-taking-action-with-nature-based-solutions/images/6c2ccbdd638de6fe7c9a9798e0a76bc1_kix.2lj1n3td520.png";
 
 async function getRecentEvents(): Promise<CommunityEvent[]> {
+  const url = `${API_URL}/api/events?limit=6`;
+
   try {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL ||
-        'http://localhost:5000/api/events?limit=6∆',
-      {
-        cache: 'no-store',
-      },
-    );
+    const response = await fetch(url, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error(
+        `[RecentEvents] GET ${url} failed with status ${response.status}`,
+      );
+      return [];
+    }
+
     const result: { data: CommunityEvent[] } = await response.json();
 
-    if (response.ok && Array.isArray(result.data)) {
-      return result.data;
+    if (!Array.isArray(result.data)) {
+      console.error(`[RecentEvents] GET ${url} returned an unexpected payload`);
+      return [];
     }
-  } catch {
-    // Show the empty state when the server is not running.
+
+    return result.data;
+  } catch (error) {
+    console.error(`[RecentEvents] GET ${url} failed:`, error);
+    // Show the empty state when the server is not reachable.
     return [];
   }
-
-  return [];
 }
 
 export default async function RecentEvents() {

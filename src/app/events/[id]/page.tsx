@@ -18,6 +18,10 @@ import Navbar from '@/components/Navbar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { API_URL } from '@/lib/config';
+
+// Rendered on every request so the event is never frozen at build time.
+export const dynamic = 'force-dynamic';
 
 type CommunityEvent = {
   _id: string;
@@ -44,10 +48,13 @@ export default function EventDetailsPage() {
 
   useEffect(() => {
     async function loadEvent() {
+      const eventUrl = `${API_URL}/api/events/${eventId}`;
+      const sessionUrl = `${API_URL}/api/auth/get-session`;
+
       try {
         const [eventResponse, sessionResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/events/${eventId}`),
-          fetch('http://localhost:5000/api/auth/get-session', {
+          fetch(eventUrl, { cache: 'no-store' }),
+          fetch(sessionUrl, {
             credentials: 'include',
           }),
         ]);
@@ -55,12 +62,16 @@ export default function EventDetailsPage() {
         const sessionResult = await sessionResponse.json();
 
         if (!eventResponse.ok) {
+          console.error(
+            `[EventDetails] GET ${eventUrl} failed with status ${eventResponse.status}`,
+          );
           throw new Error(eventResult.message || 'Could not find this event.');
         }
 
         setEvent(eventResult.data);
         setUserEmail(sessionResult.user?.email?.toLowerCase() || '');
       } catch (error) {
+        console.error(`[EventDetails] GET ${eventUrl} failed:`, error);
         setMessage(
           error instanceof Error ? error.message : 'Could not load this event.',
         );
@@ -82,7 +93,7 @@ export default function EventDetailsPage() {
 
     try {
       const tokenResponse = await fetch(
-        'http://localhost:5000/api/auth/token',
+        `${API_URL}/api/auth/token`,
         {
           credentials: 'include',
         },
@@ -96,7 +107,7 @@ export default function EventDetailsPage() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/events/${eventId}/join`,
+        `${API_URL}/api/events/${eventId}/join`,
         {
           method: 'POST',
           headers: { Authorization: `Bearer ${tokenResult.token}` },

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { CalendarCheck, CalendarPlus, ChevronDown, LogOut, Settings, UserRound } from "lucide-react";
+import { API_URL } from "@/lib/config";
 
 type AuthUser = {
   name: string;
@@ -31,8 +32,7 @@ export default function Navbar() {
     async function loadUser() {
       try {
         const response = await fetch(
-          process.env.NEXT_PUBLIC_API_URL ||
-            'http://localhost:5000/api/auth/get-session',
+          `${API_URL}/api/auth/get-session`,
           {
             credentials: 'include',
           },
@@ -68,8 +68,7 @@ export default function Navbar() {
 
     try {
       await fetch(
-        process.env.NEXT_PUBLIC_API_URL ||
-          'http://localhost:5000/api/auth/sign-out',
+        `${API_URL}/api/auth/sign-out`,
         {
           method: 'POST',
           credentials: 'include',
